@@ -1,0 +1,172 @@
+# Gumdrop
+
+A cozy clay toybox: puffy pills, soft candy colours and squishy buttons.
+
+A cozy clay toybox. A scalloped awning hangs across the top of the page, panels are
+puffy clay with a soft shine, sprinkles are scattered across the table and every forum
+group wears a different candy colour, marked with a little gumdrop. Buttons sit on a lip
+and squish down when pressed, then bounce back.
+
+Dark mode is the same toybox at night, on plum.
+
+Headings and buttons use the rounded [Fredoka](https://fonts.google.com/specimen/Fredoka),
+body text is [Nunito](https://fonts.google.com/specimen/Nunito). Bounces and pops are
+switched off for visitors who prefer reduced motion.
+
+## Screenshots
+
+| Light | Dark |
+| --- | --- |
+| ![Forum index](screenshots/forum-index.png) | ![Forum index, dark](screenshots/forum-index-dark.png) |
+| ![Topic](screenshots/topic.png) | ![Topic, dark](screenshots/topic-dark.png) |
+| ![Topic list](screenshots/topic-list.png) | ![Profile, dark](screenshots/profile-dark.png) |
+| ![Comment editor](screenshots/reply-editor.png) | ![Moderation menu](screenshots/topic-menu.png) |
+| ![Login](screenshots/login.png) | |
+
+| Phone | Phone menu |
+| --- | --- |
+| ![Phone](screenshots/mobile.png) | ![Phone menu](screenshots/mobile-menu.png) |
+
+## How it is built
+
+The theme only styles forumify's own CSS framework: `box`, `card`, the `btn-*` buttons,
+menus, form fields, tables, tabs, tags and alerts, plus the forum's own building blocks.
+It overrides no templates. Pages added by forumify updates or by plugins are built from
+the same classes, so they pick up the look without any extra work.
+
+Every colour comes from a theme variable. forumify writes the light or dark set of
+variables depending on the visitor's preference, and the stylesheet never needs to know
+which one is active. forumify's own variables keep their meaning (the admin panel uses
+them too), only their defaults change.
+
+## Theme variables
+
+On top of forumify's own colours, borders and font size, the theme adds these. All of
+them can be changed under **Admin → Settings → Themes**, separately for dark mode.
+
+| Variable | What it does |
+| --- | --- |
+| `gum-awning, gum-awning-text` | The scalloped header and its text |
+| `gum-candy-1 to gum-candy-4` | Candy colours the forum groups take turns wearing |
+| `gum-clay-shadow, gum-clay-shine` | Shadow under and highlight on top of panels |
+| `gum-sprinkles` | Opacity of the sprinkles, 0 to 1 |
+| `gum-display-font, gum-font` | Heading and body fonts |
+| `color-scheme` | `light` or `dark`, so native controls and scrollbars match |
+
+## Requirements
+
+- PHP 8.4 or newer
+- Composer
+
+## What's in here
+
+```
+src/
+  GumdropTheme.php   Theme class: name, author, stylesheets, variables
+public/
+  style.css               Loaded on every page while the theme is active
+templates/                Overrides for forumify's and plugins' templates
+```
+
+Two things in `composer.json` make it a theme:
+
+```json
+{
+    "type": "forumify-theme",
+    "extra": {
+        "forumify-plugin-class": "Forumify\\GumdropTheme\\GumdropTheme"
+    }
+}
+```
+
+forumify discovers installed themes by that package type, and reads the class named in
+`extra` for the theme's name, stylesheets and variables.
+
+## Variables
+
+Your theme class extends forumify's base theme, so it starts out with every variable
+forumify's own styles rely on: colours, elevations, borders and font size. Admins can
+change all of them under **Admin → Settings → Themes**, with separate values for dark
+mode.
+
+Add your own by overriding `getThemeConfig()`, the docblock on your theme class shows
+how. Each variable becomes a CSS custom property:
+
+```css
+.header {
+    background-color: var(--c-header);
+}
+```
+
+## Stylesheets and other static files
+
+Everything in `public/` is linked into the forumify instance at
+`public/themes/forumify/gumdrop-theme/` when the theme is installed or refreshed.
+Stylesheets listed in `getStylesheets()` are loaded on every page, anything else
+(images, fonts) can be referenced relative to them.
+
+Using an asset builder for sass or similar? Keep the sources in `assets/` and build into
+`public/`: only `public/` reaches the forumify instance.
+
+## Overriding templates
+
+Templates in `templates/` replace forumify's own. The first directory is `Forumify` for
+core templates, or the plugin class name for a plugin's templates:
+
+```
+templates/Forumify/frontend/forum/list.html.twig
+templates/AcmeCalendarPlugin/frontend/calendar.html.twig
+```
+
+Extend the original with the `@!` prefix and override only the blocks you need, so your
+theme keeps working when forumify updates the template:
+
+```twig
+{% extends '@!Forumify/frontend/forum/list.html.twig' %}
+
+{% block body %}
+    <div class="flex gap-4">
+        {{ parent() }}
+    </div>
+{% endblock %}
+```
+
+Missing a block you need? Add it to the original template and open a pull request on the
+[platform repository](https://github.com/forumify/forumify-platform).
+
+## Developing against a forumify instance
+
+Point a local forumify instance at your working copy with a path repository, so your
+changes are live without publishing anything:
+
+```bash
+cd /path/to/your/forumify-instance
+composer config repositories.gumdrop path /path/to/gumdrop
+composer require forumify/gumdrop-theme:@dev
+```
+
+The theme then shows up under **Admin → Settings → Themes**, where you can activate it.
+If it doesn't, refresh the plugin list:
+
+```bash
+php bin/console forumify:plugins:refresh
+```
+
+## Code quality
+
+```bash
+make quality        # phpcs + phpstan
+make quality-fix    # fix what phpcs can fix automatically
+```
+
+## Publishing
+
+1. Push the repository to GitHub.
+2. Submit it to [Packagist](https://packagist.org/packages/submit).
+3. Tag a release. Users install it with
+   `composer require forumify/gumdrop-theme`.
+
+## Documentation
+
+- [Theme guide](https://docs.forumify.net/guides/theme)
+- [Customization guides](https://docs.forumify.net/guides/customization/introduction)
